@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Foodie mockup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --green-900: #146b34; --green-600: #1f9d4a; --green-400: #8ed86a; --green-50: #e7f8e4;
+      --ink: #1a1a1a; --muted: #6b7280; --line: #e4e7ec; --paper: #f6f7f4; --danger: #e11d2e;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      display: grid; place-items: center; gap: 16px; padding: 28px 16px 48px;
+      background: radial-gradient(900px 420px at 50% -10%, #d9f5cf, transparent 60%), #eef2ea;
+      font-family: "Plus Jakarta Sans", sans-serif; color: var(--ink);
+    }
+    .switcher { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+    .switcher button, .ghost, .qty button, .tabs button, .side button, .pay, .primary, .link, .card, .spot, .deal, .cats button {
+      font: inherit; cursor: pointer;
+    }
+    .switcher button { border: 0; border-radius: 999px; padding: 10px 16px; font-weight: 700; background: white; color: var(--muted); }
+    .switcher button.on { background: var(--green-900); color: white; }
+    .hint { margin: 0; max-width: 640px; text-align: center; color: var(--muted); font-size: 14px; }
+    .phone { width: 390px; height: 844px; background: var(--paper); border-radius: 36px; overflow: hidden; position: relative; box-shadow: 0 30px 70px rgba(20, 60, 30, 0.18); }
+    body.mode-admin .phone, body.mode-rider #phone, body.mode-admin #rider, body:not(.mode-rider) #rider { display: none; }
+    body.mode-rider #rider { display: block; }
+    .view { display: none; height: 100%; }
+    .view.on { display: block; }
+    .status { position: absolute; z-index: 5; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; padding: 14px 22px 0; font-size: 15px; font-weight: 800; color: white; pointer-events: none; }
+    .phone.ink-status .status { color: var(--ink); }
+    .homebar { position: absolute; z-index: 5; left: 50%; bottom: 7px; width: 124px; height: 5px; margin-left: -62px; border-radius: 999px; background: #1a1a1a; pointer-events: none; }
+    .scroll { height: 100%; overflow: auto; padding: 48px 16px 108px; background: var(--paper); }
+    .slider { display: flex; width: 200%; height: 100%; transition: transform 520ms cubic-bezier(.22, 1, .36, 1); }
+    .phone.signup .slider { transform: translateX(-50%); }
+    .pane { width: 50%; height: 100%; display: flex; flex-direction: column; }
+    .hero {
+      min-height: 300px; padding: 72px 18px 48px 22px; display: flex; align-items: flex-end; justify-content: space-between;
+      background: linear-gradient(160deg, #146b34 0%, #3cb85a 55%, #8ed86a 100%); color: white;
+    }
+    .hero h1 { margin: 0 0 8px; font-size: 36px; letter-spacing: -0.04em; }
+    .hero p { margin: 0; max-width: 160px; font-size: 16px; line-height: 1.35; font-weight: 600; }
+    .courier { width: 168px; height: 168px; border-radius: 50%; overflow: hidden; flex: none; animation: ride 700ms cubic-bezier(.22, 1, .36, 1) both; }
+    .courier img { width: 130%; height: 130%; object-fit: cover; margin: -15%; }
+    .sheet { flex: 1; margin-top: -28px; background: white; border-radius: 28px 28px 0 0; padding: 26px 20px 24px; display: flex; flex-direction: column; gap: 12px; animation: rise 640ms cubic-bezier(.22, 1, .36, 1) both; }
+    @keyframes ride { from { transform: translateX(36px); opacity: 0; } }
+    @keyframes rise { from { transform: translateY(36px); } }
+    h2 { margin: 4px 0 8px; font-size: 28px; letter-spacing: -0.03em; }
+    h3 { margin: 0; font-size: 18px; }
+    label.field { display: flex; align-items: center; height: 52px; padding: 0 16px; border: 1px solid var(--line); border-radius: 999px; background: white; }
+    label.field input { border: 0; outline: 0; width: 100%; font: inherit; font-size: 15px; background: transparent; }
+    label.bad { border-color: var(--danger); background: #fef2f2; }
+    .err { margin: -6px 8px 0; color: var(--danger); font-size: 12px; font-weight: 600; }
+    .row, .total, .bill div, .line, .who, .top, .head { display: flex; justify-content: space-between; align-items: center; }
+    .check { display: flex; gap: 8px; align-items: center; font-weight: 600; font-size: 13px; }
+    .box { width: 18px; height: 18px; border-radius: 5px; background: var(--green-600); }
+    .link { color: var(--green-600); font-weight: 700; background: none; border: 0; padding: 0; }
+    .primary { width: 100%; height: 54px; border: 0; border-radius: 999px; color: white; font-weight: 700; font-size: 16px; background: linear-gradient(90deg, #168a3a, #7dce62); }
+    .primary.loading { color: transparent; position: relative; }
+    .primary.loading::after { content: ""; position: absolute; inset: 0; margin: auto; width: 18px; height: 18px; border-radius: 50%; border: 2px solid white; border-right-color: transparent; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .or { text-align: center; color: var(--muted); font-size: 12px; font-weight: 600; }
+    .social { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .social button { height: 48px; border-radius: 999px; border: 1px solid var(--line); background: white; font: inherit; font-weight: 700; cursor: pointer; }
+    .switch { text-align: center; font-size: 13px; color: var(--muted); }
+    small, .muted { color: var(--muted); font-weight: 600; }
+    .search { margin: 12px 0; }
+    .banner { margin-top: 8px; min-height: 128px; border-radius: 22px; padding: 16px; display: flex; align-items: center; justify-content: space-between; color: white; background: linear-gradient(100deg, #0e7a32, #8ed86a); border: 0; width: 100%; text-align: left; font: inherit; cursor: pointer; }
+    .banner strong { display: block; font-size: 22px; line-height: 1.1; }
+    .banner .courier { width: 96px; height: 96px; }
+    .head { margin: 18px 0 10px; }
+    .cats { display: flex; justify-content: space-between; }
+    .cats button { background: none; border: 0; padding: 0; text-align: center; }
+    .cats img, .round { width: 58px; height: 58px; border-radius: 50%; object-fit: cover; display: block; }
+    .cats span { display: block; margin-top: 6px; font-size: 11px; font-weight: 700; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .card, .spot { display: flex; gap: 10px; align-items: center; padding: 10px; background: white; border-radius: 16px; border: 0; width: 100%; text-align: left; box-shadow: 0 8px 24px rgba(20, 60, 30, 0.06); }
+    .food { display: block; padding: 0; overflow: hidden; background: white; border: 0; border-radius: 18px; text-align: left; width: 100%; box-shadow: 0 8px 24px rgba(20, 60, 30, 0.06); cursor: pointer; font: inherit; }
+    .food img { width: 100%; height: 110px; object-fit: cover; display: block; }
+    .food div { padding: 10px 12px 12px; }
+    .food b, .card b, .spot b { display: block; }
+    .card img, .spot img, .line img { width: 52px; height: 52px; border-radius: 12px; object-fit: cover; }
+    .price { color: var(--green-900); font-weight: 800; font-style: normal; }
+    .chip, .pill { display: inline-block; padding: 4px 8px; border-radius: 999px; background: var(--green-50); color: var(--green-900); font-size: 11px; font-weight: 800; }
+    .pill.wait { background: #fff4d6; color: #8a5a00; }
+    .pill.bad { background: #fef2f2; color: var(--danger); }
+    .deal { border: 0; border-radius: 18px; padding: 14px; color: white; min-height: 120px; text-align: left; }
+    .deal.dark { background: linear-gradient(160deg, #1a1a1a, #3a3a3a); }
+    .deal.green { background: linear-gradient(160deg, #146b34, #1f9d4a); }
+    .tabs { position: absolute; left: 0; right: 0; bottom: 0; display: none; grid-template-columns: repeat(5, 1fr); background: white; padding: 8px 4px 18px; font-size: 11px; font-weight: 700; text-align: center; }
+    .phone.show-tabs .tabs { display: grid; }
+    #rider .tabs { grid-template-columns: repeat(3, 1fr); }
+    .tabs button { background: none; border: 0; color: var(--muted); font-weight: 700; min-height: 44px; }
+    .tabs button.on { color: var(--green-600); }
+    .back { background: none; border: 0; font: inherit; font-weight: 700; color: var(--green-600); cursor: pointer; padding: 0 0 8px; }
+    .pay { display: flex; justify-content: space-between; align-items: center; height: 52px; padding: 0 14px; border-radius: 16px; background: white; border: 1px solid var(--line); width: 100%; font-weight: 700; }
+    .pay.on { border: 2px solid var(--green-600); }
+    .bill { display: grid; gap: 8px; margin: 14px 0; font-weight: 700; }
+    .line { background: white; border-radius: 16px; padding: 12px; margin-top: 10px; gap: 10px; }
+    .qty { display: flex; gap: 8px; align-items: center; }
+    .qty button { width: 40px; height: 40px; border: 0; border-radius: 50%; background: var(--green-50); color: var(--green-900); font-weight: 800; }
+    .fail { background: #fef2f2; color: var(--danger); border-radius: 16px; padding: 14px; font-weight: 700; }
+    #failBtn { display: block; width: 100%; text-align: center; margin-top: 12px; }
+    .map { position: relative; height: 210px; border-radius: 20px; overflow: hidden; background: linear-gradient(160deg, #d7eadb, #c5ddc8 40%, #e7f0df); }
+    .map::before { content: ""; position: absolute; inset: 28px 10px auto; height: 10px; border-radius: 999px; background: #f4f7f2; transform: rotate(18deg); box-shadow: 40px 70px 0 #f4f7f2, -20px 110px 0 #f4f7f2; }
+    .pin { position: absolute; min-width: 12px; padding: 4px 8px; border-radius: 999px; background: var(--green-900); color: white; font-size: 11px; font-weight: 800; }
+    .pin.you { background: white; color: var(--ink); border: 2px solid var(--green-600); }
+    .pin.hot { background: var(--danger); }
+    .steps { display: grid; gap: 12px; margin-top: 14px; }
+    .step { display: flex; gap: 12px; align-items: flex-start; background: white; border: 0; border-radius: 14px; padding: 10px; text-align: left; cursor: pointer; }
+    .mark { width: 14px; height: 14px; border-radius: 50%; background: var(--line); margin-top: 3px; flex: none; }
+    .step.on .mark, .step.done .mark { background: var(--green-600); }
+    .rank { display: flex; gap: 10px; align-items: center; background: white; border-radius: 16px; padding: 12px; margin-top: 8px; }
+    .rank b.n { width: 28px; text-align: center; color: var(--green-900); }
+    .rank.me { outline: 2px solid var(--green-600); }
+    .offer { position: absolute; z-index: 6; left: 12px; right: 12px; bottom: 92px; background: white; border-radius: 24px; padding: 16px; box-shadow: 0 16px 40px rgba(0,0,0,.16); }
+    .ring { width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; margin: 0 auto 8px; background: conic-gradient(var(--green-600) 75%, var(--line) 0); }
+    .ring span { width: 56px; height: 56px; border-radius: 50%; background: white; display: grid; place-items: center; font-weight: 800; }
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .ghost { background: white; color: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 12px; font-weight: 700; }
+    .danger { background: #fef2f2; color: var(--danger); border: 0; }
+    .admin { display: none; width: min(1180px, 100%); }
+    body.mode-admin { display: flex; flex-direction: column; align-items: center; }
+    body.mode-admin .admin { display: grid; grid-template-columns: 230px 1fr; min-height: 760px; background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 30px 70px rgba(20, 60, 30, 0.12); }
+    .side { background: #10351c; color: white; padding: 22px 14px; display: flex; flex-direction: column; gap: 4px; }
+    .side strong { font-size: 22px; letter-spacing: -0.03em; }
+    .side em { font-style: normal; color: #8ed86a; font-size: 12px; font-weight: 700; margin: 0 10px 14px; }
+    .side button { text-align: left; background: transparent; border: 0; color: #d7eadb; font-weight: 700; padding: 10px 12px; border-radius: 12px; }
+    .side button.on { background: #1f9d4a; color: white; }
+    .main { padding: 22px; background: var(--paper); overflow: auto; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .stat { background: white; border-radius: 16px; padding: 14px; min-height: 92px; }
+    .stat.a { background: #146b34; color: white; }
+    .stat.b { background: #1a1a1a; color: white; }
+    .stat.c { background: #1f9d4a; color: white; }
+    .stat.d { background: white; }
+    .stat span { font-size: 12px; font-weight: 700; opacity: .85; }
+    .stat b { display: block; margin-top: 8px; font-size: 26px; letter-spacing: -0.03em; }
+    .dash { display: grid; grid-template-columns: 1.3fr .7fr; gap: 12px; margin-top: 12px; }
+    .panel { display: none; }
+    .panel.on { display: block; }
+    .cardbox { background: white; border-radius: 16px; padding: 14px; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 16px; overflow: hidden; }
+    th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); font-size: 14px; }
+    th { font-size: 12px; color: var(--muted); }
+    .note { margin-top: 12px; color: var(--muted); font-size: 13px; }
+    .actions { display: flex; gap: 8px; }
+    .actions button { border: 0; border-radius: 999px; padding: 8px 12px; font: inherit; font-weight: 700; cursor: pointer; background: var(--green-600); color: white; }
+    .actions button.ghost { background: white; color: var(--ink); border: 1px solid var(--line); }
+    @media (prefers-reduced-motion: reduce) {
+      .slider, .courier, .sheet, .primary.loading::after { animation: none; transition: none; }
+    }
+    @media (max-width: 900px) {
+      .stats, .dash { grid-template-columns: 1fr 1fr; }
+      body.mode-admin .admin { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="switcher">
+    <button type="button" id="showApp" class="on">Customer app</button>
+    <button type="button" id="showRider">Rider app</button>
+    <button type="button" id="showAdmin">Web admin</button>
+  </div>
+  <p class="hint" id="hint">Customer phone, rider phone, and the web dashboard share the same Accra orders, places, and leaderboard.</p>
+
+  <div class="phone" id="phone">
+    <div class="status"><span>9:41</span><span>5G</span></div>
+    <div class="view on" id="auth">
+      <div class="slider">
+        <section class="pane">
+          <div class="hero">
+            <div><h1>Foodie.</h1><p>Hot meals, right at your door.</p></div>
+            <span class="courier"><img src="assets/courier.jpg" alt="Courier on a green scooter" /></span>
+          </div>
+          <form class="sheet" id="signin">
+            <h2>Welcome Back</h2>
+            <label class="field" id="emailField"><input id="email" type="text" placeholder="Email or phone" autocomplete="username" /></label>
+            <p class="err" id="emailErr" hidden>That email doesn't look right</p>
+            <label class="field"><input type="password" placeholder="Password" autocomplete="current-password" /></label>
+            <div class="row"><span class="check"><span class="box"></span> Keep me signed in</span><button class="link" type="button">Forgot Password?</button></div>
+            <button class="primary" id="login" type="submit">Log In</button>
+            <div class="or">Or continue with</div>
+            <div class="social"><button type="button">Google</button><button type="button">Apple</button></div>
+            <div class="switch">Don't have an account? <button class="link" type="button" id="toSignup">Sign Up</button></div>
+          </form>
+        </section>
+        <section class="pane">
+          <div class="hero">
+            <div><h1>Foodie.</h1><p>Welcome back. Your points are waiting.</p></div>
+            <span class="courier"><img src="assets/courier.jpg" alt="" /></span>
+          </div>
+          <form class="sheet" id="signup">
+            <h2>Create account</h2>
+            <label class="field"><input type="text" placeholder="Full name" /></label>
+            <label class="field"><input type="text" placeholder="Email or phone" /></label>
+            <label class="field"><input type="password" placeholder="Password" /></label>
+            <button class="primary" type="submit">Create account</button>
+            <div class="or">Or continue with</div>
+            <div class="social"><button type="button">Google</button><button type="button">Apple</button></div>
+            <div class="switch">Already eating with us? <button class="link" type="button" id="toSignin">Log in</button></div>
+          </form>
+        </section>
+      </div>
+    </div>
+
+    <div class="view" id="home">
+      <div class="scroll">
+        <div class="top">
+          <div><small>Deliver to</small><div><b>Home · East Legon, Accra</b></div></div>
+          <button class="link" type="button" data-go="places">Map</button>
+        </div>
+        <label class="field search"><input placeholder="Search dishes or places" readonly /></label>
+        <button class="banner" type="button" data-promo="FOODIE30">
+          <div><strong>30% off food</strong><span>FOODIE30 · tap to apply</span></div>
+          <span class="courier"><img src="assets/courier.jpg" alt="" /></span>
+        </button>
+        <div class="head"><h3>Categories</h3><button class="link" type="button" data-go="menu">See all</button></div>
+        <div class="cats">
+          <button type="button" data-go="menu"><img src="assets/chicken.jpg" alt="" /><span>Chicken</span></button>
+          <button type="button" data-go="menu"><img src="assets/burger.jpg" alt="" /><span>Burger</span></button>
+          <button type="button" data-go="menu"><img src="assets/jollof.jpg" alt="" /><span>Jollof</span></button>
+          <button type="button" data-go="menu"><img src="assets/fries.jpg" alt="" /><span>Fries</span></button>
+          <button type="button" data-go="menu"><img src="assets/pizza.jpg" alt="" /><span>Pizza</span></button>
+        </div>
+        <div class="head"><h3>Popular near you</h3></div>
+        <div class="grid2">
+          <button class="food" type="button" data-add="chicken"><img src="assets/chicken.jpg" alt="Herb roast chicken" /><div><b>Herb roast</b><small>Auntie Muni's · 35 min</small><em class="price">GHS 85</em></div></button>
+          <button class="food" type="button" data-add="jollof"><img src="assets/jollof.jpg" alt="Jollof bowl" /><div><b>Jollof bowl</b><small>20 min</small><em class="price">GHS 48</em></div></button>
+          <button class="food" type="button" data-add="burger"><img src="assets/burger.jpg" alt="Cheese burger" /><div><b>Cheese burger</b><small>Yesterday</small><em class="price">GHS 65</em></div></button>
+          <button class="food" type="button" data-add="fries"><img src="assets/fries.jpg" alt="Fries" /><div><b>Loaded fries</b><small>12 min</small><em class="price">GHS 28</em></div></button>
+        </div>
+        <div class="head"><h3>Places</h3><button class="link" type="button" data-go="places">Suggest</button></div>
+        <button class="spot" type="button" data-go="menu"><img src="assets/fries.jpg" alt="" /><div><b>Auntie Muni's</b><small>Grill · 25 min · Orderable</small><span class="chip">Free delivery</span></div></button>
+      </div>
+    </div>
+
+    <div class="view" id="menu">
+      <div class="scroll">
+        <button class="back" type="button" data-go="home">Back</button>
+        <h2>Auntie Muni's</h2>
+        <p class="muted">Grill · East Legon · 25 min</p>
+        <div class="grid2">
+          <button class="food" type="button" data-add="chicken"><img src="assets/chicken.jpg" alt="" /><div><b>Herb roast</b><em class="price">GHS 85</em></div></button>
+          <button class="food" type="button" data-add="jollof"><img src="assets/jollof.jpg" alt="" /><div><b>Jollof bowl</b><em class="price">GHS 48</em></div></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="cart">
+      <div class="scroll">
+        <h2>Cart</h2>
+        <p class="muted" id="emptyCart">Your cart is empty. Add a dish from Auntie Muni's.</p>
+        <div id="cartLines"></div>
+        <div class="grid2" style="margin-top:14px">
+          <button class="deal dark" type="button" data-promo="FOODIE30"><b>FOODIE30</b><span>30% off food</span></button>
+          <button class="deal green" type="button" data-promo="FREESHIP"><b>FREESHIP</b><span>Delivery free</span></button>
+        </div>
+        <button class="primary" id="toCheckout" type="button" style="margin-top:16px" hidden>Checkout</button>
+      </div>
+    </div>
+
+    <div class="view" id="checkout">
+      <div class="scroll">
+        <button class="back" type="button" data-go="cart">Back</button>
+        <h2>Checkout</h2>
+        <p class="muted">East Legon, Accra</p>
+        <div id="checkoutLines"></div>
+        <div class="bill" id="bill"></div>
+        <h3>Pay the rest</h3>
+        <div style="display:grid;gap:8px" id="methods">
+          <button class="pay on" type="button">MTN MoMo <span>Selected</span></button>
+          <button class="pay" type="button">Telecel Cash</button>
+          <button class="pay" type="button">AirtelTigo Money</button>
+          <button class="pay" type="button">Card</button>
+        </div>
+        <p class="fail" id="fail" hidden>Payment didn't go through. Your cart is unchanged.</p>
+        <div class="total" style="margin-top:12px"><span>To pay</span><b id="remainder">GHS 0.00</b></div>
+        <button class="primary" id="place" type="button">Place order</button>
+        <button class="link" id="failBtn" type="button">Show a failed payment</button>
+      </div>
+    </div>
+
+    <div class="view" id="track">
+      <div class="scroll">
+        <button class="back" type="button" data-go="home">Home</button>
+        <h2>Tracking</h2>
+        <p class="muted">Order #1048 · Auntie Muni's · MTN MoMo</p>
+        <div class="map" aria-hidden="true">
+          <span class="pin" style="top:36%;left:18%">Auntie Muni's</span>
+          <span class="pin you" style="top:58%;left:62%">You</span>
+          <span class="pin hot" style="top:48%;left:42%">Kofi</span>
+        </div>
+        <div class="spot" style="margin-top:12px;cursor:default"><img class="round" src="assets/courier.jpg" alt="" /><div><b>Kofi Mensah</b><small>Rider · 8 min away</small></div></div>
+        <div class="steps" id="steps">
+          <button class="step on" type="button" data-step="0"><span class="mark"></span><span><b>Confirmed</b><br><small>Paid. The kitchen has the order.</small></span></button>
+          <button class="step" type="button" data-step="1"><span class="mark"></span><span><b>Preparing</b><br><small>Auntie Muni's is cooking.</small></span></button>
+          <button class="step" type="button" data-step="2"><span class="mark"></span><span><b>Picked up</b><br><small>The rider has the bag.</small></span></button>
+          <button class="step" type="button" data-step="3"><span class="mark"></span><span><b>Arriving</b><br><small>A few minutes from East Legon.</small></span></button>
+          <button class="step" type="button" data-step="4"><span class="mark"></span><span><b>Delivered</b><br><small>Enjoy the meal.</small></span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="places">
+      <div class="scroll">
+        <button class="back" type="button" data-go="home">Back</button>
+        <h2>Places</h2>
+        <p class="muted">Drop a pin where people should be able to order.</p>
+        <div class="map" id="pinMap">
+          <span class="pin" style="top:30%;left:22%">Auntie Muni's</span>
+          <span class="pin wait" style="top:52%;left:58%;background:#8a5a00">Kofi's Waakye</span>
+          <span class="pin you" style="top:68%;left:30%">Buka Spot</span>
+        </div>
+        <button class="primary" id="dropPin" type="button" style="margin-top:12px">Drop a pin here</button>
+        <div id="placeList">
+          <div class="rank"><div style="flex:1"><b>Kofi's Waakye</b><small>East Legon · Ama Mensah · In review</small></div></div>
+          <div class="rank"><div style="flex:1"><b>Buka Spot</b><small>Osu · Kwame Boateng · Live</small></div></div>
+          <div class="rank"><div style="flex:1"><b>Auntie Muni's</b><small>East Legon · Orderable</small></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="you">
+      <div class="scroll">
+        <h2>Ama</h2>
+        <p class="muted">East Legon · one account for orders, places, and points.</p>
+        <button class="spot" type="button" data-go="board"><div><b>Leaderboard</b><small>You are 6th this month · 640 rank points</small></div></button>
+        <button class="spot" type="button" data-go="places" style="margin-top:10px"><div><b>Your places</b><small>Suggest a joint and drop a pin</small></div></button>
+      </div>
+    </div>
+
+    <div class="view" id="board">
+      <div class="scroll">
+        <h2>October</h2>
+        <p class="muted">Rank points this month. Cash does not reset.</p>
+        <div class="rank"><b class="n">1</b><div style="flex:1"><b>Ama Mensah</b><small>Kofi's Waakye</small></div><b>1,240</b></div>
+        <div class="rank"><b class="n">2</b><div style="flex:1"><b>Kwame Boateng</b><small>Buka Spot</small></div><b>980</b></div>
+        <div class="rank me"><b class="n">6</b><div style="flex:1"><b>You</b><small>Prize points 420</small></div><b>640</b></div>
+        <div class="rank"><b class="n">7</b><div style="flex:1"><b>Esi Owusu</b><small>Osu</small></div><b>510</b></div>
+      </div>
+    </div>
+
+    <nav class="tabs">
+      <button class="on" type="button" data-tab="home">Home</button>
+      <button type="button" data-tab="places">Places</button>
+      <button type="button" data-tab="cart">Cart</button>
+      <button type="button" data-tab="board">Board</button>
+      <button type="button" data-tab="you">You</button>
+    </nav>
+    <div class="homebar"></div>
+  </div>
+
+  <div class="phone ink-status show-tabs" id="rider">
+    <div class="status"><span>9:41</span><span>5G</span></div>
+    <div class="view on" id="r-jobs">
+      <div class="scroll">
+        <h2>Rider</h2>
+        <p class="muted">East Legon · 2 jobs nearby</p>
+        <button class="spot" type="button" id="openOffer"><img src="assets/chicken.jpg" alt="" /><div><b>#1048 · Auntie Muni's</b><small>Pickup 1.2 km · Drop East Legon · GHS 12</small><span class="chip">New</span></div></button>
+        <button class="spot" type="button" style="margin-top:10px"><img src="assets/jollof.jpg" alt="" /><div><b>#1044 · Buka Spot</b><small>Osu · GHS 9 · Taken</small></button>
+      </div>
+    </div>
+    <div class="view" id="r-offer">
+      <div class="scroll" style="padding-bottom:280px">
+        <button class="back" type="button" data-rider="r-jobs">Back</button>
+        <div class="map"><span class="pin" style="top:34%;left:20%">Pickup</span><span class="pin you" style="top:64%;left:60%">Drop</span></div>
+      </div>
+      <div class="offer">
+        <div class="ring"><span>45s</span></div>
+        <b>Auntie Muni's → East Legon</b>
+        <p class="muted">2 items · GHS 93.50 bill · You earn GHS 12</p>
+        <div class="split">
+          <button class="ghost danger" type="button" data-rider="r-jobs">Reject</button>
+          <button class="primary" id="acceptJob" type="button">Accept</button>
+        </div>
+      </div>
+    </div>
+    <div class="view" id="r-trip">
+      <div class="scroll">
+        <h2>On the way</h2>
+        <div class="map"><span class="pin" style="top:40%;left:28%">Pickup</span><span class="pin hot" style="top:50%;left:48%">You</span><span class="pin you" style="top:66%;left:64%">Drop</span></div>
+        <div class="rank"><div style="flex:1"><b>Pickup</b><small>Auntie Muni's, East Legon</small></div><span class="pill">Now</span></div>
+        <div class="rank"><div style="flex:1"><b>Drop</b><small>Home, East Legon</small></div></div>
+        <button class="primary" id="finishJob" type="button" style="margin-top:16px">Mark delivered</button>
+      </div>
+    </div>
+    <div class="view" id="r-pay">
+      <div class="scroll">
+        <h2>Today</h2>
+        <div class="grid2">
+          <div class="stat a"><span>Earned</span><b>GHS 86</b></div>
+          <div class="stat b"><span>Trips</span><b>7</b></div>
+        </div>
+        <div class="rank"><div style="flex:1"><b>#1048 delivered</b><small>Auntie Muni's</small></div><b>GHS 12</b></div>
+        <div class="rank"><div style="flex:1"><b>#1038 delivered</b><small>Kofi's Waakye</small></div><b>GHS 9</b></div>
+      </div>
+    </div>
+    <nav class="tabs">
+      <button class="on" type="button" data-rider="r-jobs">Jobs</button>
+      <button type="button" data-rider="r-trip">Trip</button>
+      <button type="button" data-rider="r-pay">Pay</button>
+    </nav>
+    <div class="homebar"></div>
+  </div>
+
+  <div class="admin" id="admin">
+    <aside class="side">
+      <strong>Foodie.</strong>
+      <em>Web admin · Accra</em>
+      <button type="button" class="on" data-panel="dash">Dashboard</button>
+      <button type="button" data-panel="orders">Orders</button>
+      <button type="button" data-panel="places">Places</button>
+      <button type="button" data-panel="riders">Riders</button>
+      <button type="button" data-panel="pay">Payments</button>
+      <button type="button" data-panel="board">Leaderboard</button>
+    </aside>
+    <div class="main">
+      <section class="panel on" id="dash">
+        <h2>Today · Accra</h2>
+        <div class="stats">
+          <div class="stat a"><span>Orders</span><b>42</b></div>
+          <div class="stat b"><span>Paid</span><b>GHS 3,180</b></div>
+          <div class="stat c"><span>On the road</span><b>6</b></div>
+          <div class="stat d"><span>Waiting review</span><b>3</b></div>
+        </div>
+        <div class="dash">
+          <div class="cardbox">
+            <div class="head"><h3>Orders this week</h3><small>Mon–Sun</small></div>
+            <svg viewBox="0 0 320 120" width="100%" height="120" role="img" aria-label="Orders rose from 18 on Monday to 42 today">
+              <polyline fill="none" stroke="#1f9d4a" stroke-width="3" points="10,90 60,70 110,78 160,50 210,46 260,30 310,18" />
+              <polyline fill="none" stroke="#146b34" stroke-width="3" opacity=".35" points="10,100 60,92 110,88 160,80 210,74 260,60 310,48" />
+            </svg>
+            <p class="note">Green line is orders. Faint line is GHS paid, scaled down.</p>
+          </div>
+          <div class="cardbox">
+            <h3>Live deliveries</h3>
+            <div class="map" style="height:150px;margin-top:8px">
+              <span class="pin" style="top:28%;left:16%">Muni</span>
+              <span class="pin hot" style="top:48%;left:46%">Kofi</span>
+              <span class="pin you" style="top:62%;left:68%">Drop</span>
+            </div>
+            <p class="note">#1048 Kofi Mensah · Auntie Muni's → East Legon · Preparing</p>
+          </div>
+        </div>
+        <div class="cardbox" style="margin-top:12px;padding:0">
+          <table>
+            <thead><tr><th>Order</th><th>Place</th><th>Pay</th><th>Status</th><th>Rider</th></tr></thead>
+            <tbody>
+              <tr><td>#1048<br><small>GHS 93.50</small></td><td>Auntie Muni's</td><td>MTN MoMo</td><td><span class="pill">Preparing</span></td><td>Kofi Mensah</td></tr>
+              <tr><td>#1042<br><small>GHS 62.40</small></td><td>Auntie Muni's</td><td>MTN MoMo</td><td><span class="pill" id="orderStatus">Preparing</span></td><td>Unassigned</td></tr>
+              <tr><td>#1038<br><small>GHS 48.00</small></td><td>Kofi's Waakye</td><td>Telecel</td><td><span class="pill">Delivered</span></td><td>Abena Darko</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="panel" id="orders">
+        <h2>Orders</h2>
+        <table>
+          <thead><tr><th>Order</th><th>Place</th><th>Pay</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>#1042<br><small>GHS 62.40</small></td><td>Auntie Muni's</td><td>MTN MoMo</td><td><span class="pill" id="orderStatus2">Preparing</span></td><td class="actions"><button class="ghost" type="button" id="refund">Refund</button></td></tr>
+            <tr><td>#1038<br><small>GHS 48.00</small></td><td>Kofi's Waakye</td><td>Telecel</td><td><span class="pill">Delivered</span></td><td></td></tr>
+          </tbody>
+        </table>
+        <p class="note" id="refundNote">Refund before pickup returns the MoMo charge and reverses points.</p>
+      </section>
+      <section class="panel" id="places">
+        <h2>Suggested places</h2>
+        <div class="map" style="height:180px;margin-bottom:12px">
+          <span class="pin" style="top:30%;left:20%">Muni</span>
+          <span class="pin" style="top:50%;left:55%;background:#8a5a00">Waakye</span>
+          <span class="pin you" style="top:68%;left:32%">Buka</span>
+        </div>
+        <table>
+          <thead><tr><th>Place</th><th>Suggester</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><b>Kofi's Waakye</b><br><small>East Legon · pin and 2 photos</small></td><td>Ama Mensah</td><td><span class="pill wait" data-status>In review</span></td><td class="actions"><button type="button" data-set="Live">Live</button><button type="button" data-set="Orderable">Orderable</button><button class="ghost" type="button" data-set="Rejected">Reject</button></td></tr>
+            <tr><td><b>Buka Spot</b><br><small>Osu · pin and 1 photo</small></td><td>Kwame Boateng</td><td><span class="pill" data-status>Live</span></td><td class="actions"><button type="button" data-set="Orderable">Orderable</button><button class="ghost" type="button" data-set="Rejected">Reject</button></td></tr>
+          </tbody>
+        </table>
+        <label class="field" style="margin-top:12px;max-width:420px"><input id="reason" placeholder="Rejection reason" /></label>
+        <p class="note" id="placeNote">Reject needs a reason. Orderable pays the 40-point approval bonus.</p>
+      </section>
+      <section class="panel" id="riders">
+        <h2>Riders</h2>
+        <table>
+          <thead><tr><th>Rider</th><th>Now</th><th>Today</th><th>Trips</th></tr></thead>
+          <tbody>
+            <tr><td>Kofi Mensah</td><td><span class="pill">On #1048</span></td><td>GHS 86</td><td>7</td></tr>
+            <tr><td>Abena Darko</td><td><span class="pill wait">Idle</span></td><td>GHS 54</td><td>4</td></tr>
+          </tbody>
+        </table>
+      </section>
+      <section class="panel" id="pay">
+        <h2>Payments</h2>
+        <table>
+          <thead><tr><th>Intent</th><th>Method</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>pi_1048</td><td>MTN MoMo</td><td>GHS 93.50</td><td><span class="pill">Paid</span></td></tr>
+            <tr><td>pi_1042</td><td>MTN MoMo</td><td>GHS 62.40</td><td><span class="pill">Paid</span></td></tr>
+            <tr><td>pi_1041</td><td>Card</td><td>GHS 28.00</td><td><span class="pill bad">Failed</span></td></tr>
+            <tr><td>pi_1033</td><td>AirtelTigo</td><td>GHS 15.00</td><td><span class="pill wait">Refund pending</span></td></tr>
+          </tbody>
+        </table>
+        <p class="note">No gateway is connected. These are the statuses the adapter will report.</p>
+      </section>
+      <section class="panel" id="board">
+        <h2>October leaderboard</h2>
+        <table>
+          <thead><tr><th>Rank</th><th>Suggester</th><th>Place</th><th>Rank pts</th><th>Prize pts</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Ama Mensah</td><td>Kofi's Waakye</td><td>1,240</td><td>420</td></tr>
+            <tr><td>2</td><td>Kwame Boateng</td><td>Buka Spot</td><td>980</td><td>310</td></tr>
+            <tr><td>6</td><td>You</td><td>—</td><td>640</td><td>420</td></tr>
+          </tbody>
+        </table>
+        <p class="note">Top 10, or anyone with 200 prize points, can win this month. Cash points are not on this board.</p>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const phone = document.getElementById("phone");
+    const views = ["auth", "home", "menu", "cart", "checkout", "track", "places", "board", "you"];
+    const catalog = {
+      chicken: { name: "Herb Roast Chicken", price: 85, img: "assets/chicken.jpg" },
+      jollof: { name: "Jollof bowl", price: 48, img: "assets/jollof.jpg" },
+      burger: { name: "Cheese Burger", price: 65, img: "assets/burger.jpg" },
+      fries: { name: "Loaded fries", price: 28, img: "assets/fries.jpg" },
+    };
+    const cart = {};
+    let promo = "";
+    let freeship = false;
+    const money = (n) => "GHS " + n.toFixed(2);
+    const lines = () => Object.entries(cart).filter(([, q]) => q > 0).map(([id, qty]) => ({ ...catalog[id], id, qty }));
+    function totals() {
+      const food = lines().reduce((s, l) => s + l.price * l.qty, 0);
+      const off = promo === "FOODIE30" ? food * 0.3 : 0;
+      const delivery = food === 0 || freeship ? 0 : 8.5;
+      return { food, off, delivery, total: food - off + delivery };
+    }
+    function renderCart() {
+      const items = lines();
+      document.getElementById("emptyCart").hidden = items.length > 0;
+      document.getElementById("toCheckout").hidden = items.length === 0;
+      document.getElementById("cartLines").innerHTML = items.map((l) =>
+        `<div class="line"><img src="${l.img}" alt="" /><div style="flex:1"><b>${l.name}</b><em class="price">${money(l.price)}</em></div><div class="qty"><button type="button" data-qty="${l.id}" data-dir="-1" aria-label="Less">−</button><span>${l.qty}</span><button type="button" data-qty="${l.id}" data-dir="1" aria-label="More">+</button></div></div>`
+      ).join("");
+      const bill = totals();
+      document.getElementById("checkoutLines").innerHTML = items.map((l) =>
+        `<div class="spot" style="cursor:default;margin-top:8px"><img src="${l.img}" alt="" /><div><b>${l.name} × ${l.qty}</b><em class="price">${money(l.price * l.qty)}</em></div></div>`
+      ).join("");
+      const promoLine = promo ? `<div><span>${promo}</span><span>−${money(bill.off)}</span></div>` : "";
+      document.getElementById("bill").innerHTML = `<div><span>Food</span><span>${money(bill.food)}</span></div>${promoLine}<div><span>Delivery${freeship ? " · FREESHIP" : ""}</span><span>${freeship ? "Free" : money(bill.delivery)}</span></div>`;
+      document.getElementById("remainder").textContent = money(bill.total);
+    }
+    function show(id) {
+      views.forEach((v) => document.getElementById(v).classList.toggle("on", v === id));
+      const tabs = ["home", "menu", "cart", "places", "board", "you"].includes(id);
+      phone.classList.toggle("show-tabs", tabs);
+      phone.classList.toggle("ink-status", id !== "auth");
+      if (id !== "auth") phone.classList.remove("signup");
+      document.querySelectorAll("#phone .tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === id));
+      if (id === "checkout") document.getElementById("fail").hidden = true;
+    }
+    function showRider(id) {
+      ["r-jobs", "r-offer", "r-trip", "r-pay"].forEach((v) => document.getElementById(v).classList.toggle("on", v === id));
+      document.querySelectorAll("#rider .tabs button").forEach((b) => b.classList.toggle("on", b.dataset.rider === id));
+    }
+    function mode(name) {
+      document.body.classList.toggle("mode-admin", name === "admin");
+      document.body.classList.toggle("mode-rider", name === "rider");
+      document.getElementById("showApp").classList.toggle("on", name === "app");
+      document.getElementById("showRider").classList.toggle("on", name === "rider");
+      document.getElementById("showAdmin").classList.toggle("on", name === "admin");
+    }
+    document.getElementById("showApp").onclick = () => mode("app");
+    document.getElementById("showRider").onclick = () => mode("rider");
+    document.getElementById("showAdmin").onclick = () => mode("admin");
+    document.getElementById("toSignup").onclick = () => phone.classList.add("signup");
+    document.getElementById("toSignin").onclick = () => phone.classList.remove("signup");
+    document.getElementById("signin").onsubmit = (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const bad = email.length > 0 && !email.includes("@") && !/^\+?\d{9,}$/.test(email);
+      document.getElementById("emailField").classList.toggle("bad", bad);
+      document.getElementById("emailErr").hidden = !bad;
+      if (bad) return;
+      const btn = document.getElementById("login");
+      btn.classList.add("loading");
+      setTimeout(() => { btn.classList.remove("loading"); show("home"); }, 700);
+    };
+    document.getElementById("signup").onsubmit = (e) => { e.preventDefault(); show("home"); };
+    document.querySelectorAll("[data-go]").forEach((el) => el.addEventListener("click", () => show(el.dataset.go)));
+    document.querySelectorAll("[data-add]").forEach((el) => el.addEventListener("click", () => {
+      cart[el.dataset.add] = (cart[el.dataset.add] || 0) + 1;
+      renderCart();
+      show("cart");
+    }));
+    document.querySelectorAll("[data-promo]").forEach((el) => el.addEventListener("click", () => {
+      if (el.dataset.promo === "FREESHIP") freeship = true; else promo = "FOODIE30";
+      if (!lines().length) { cart.chicken = 1; }
+      renderCart();
+      show("cart");
+    }));
+    document.getElementById("cartLines").onclick = (e) => {
+      const btn = e.target.closest("[data-qty]");
+      if (!btn) return;
+      cart[btn.dataset.qty] = Math.max(0, (cart[btn.dataset.qty] || 0) + Number(btn.dataset.dir));
+      renderCart();
+    };
+    document.getElementById("toCheckout").onclick = () => { renderCart(); show("checkout"); };
+    document.querySelectorAll("#phone .tabs button").forEach((b) => b.addEventListener("click", () => show(b.dataset.tab)));
+    document.getElementById("methods").onclick = (e) => {
+      const btn = e.target.closest(".pay");
+      if (!btn) return;
+      document.querySelectorAll(".pay").forEach((p) => { p.classList.toggle("on", p === btn); const m = p.querySelector("span"); if (m) m.remove(); });
+      btn.insertAdjacentHTML("beforeend", "<span>Selected</span>");
+    };
+    document.getElementById("failBtn").onclick = () => { document.getElementById("fail").hidden = false; };
+    document.getElementById("place").onclick = () => { if (lines().length) show("track"); };
+    document.getElementById("steps").onclick = (e) => {
+      const step = e.target.closest("[data-step]");
+      if (!step) return;
+      const index = Number(step.dataset.step);
+      document.querySelectorAll(".step").forEach((node) => {
+        const n = Number(node.dataset.step);
+        node.classList.toggle("done", n < index);
+        node.classList.toggle("on", n <= index);
+      });
+    };
+    document.getElementById("dropPin").onclick = () => {
+      const row = document.createElement("div");
+      row.className = "rank";
+      row.innerHTML = "<div style='flex:1'><b>Your pin</b><small>East Legon · just dropped · In review</small></div>";
+      document.getElementById("placeList").prepend(row);
+      document.getElementById("dropPin").textContent = "Pin sent for review";
+    };
+    document.getElementById("openOffer").onclick = () => showRider("r-offer");
+    document.getElementById("acceptJob").onclick = () => showRider("r-trip");
+    document.getElementById("finishJob").onclick = () => showRider("r-pay");
+    document.querySelectorAll("[data-rider]").forEach((el) => el.addEventListener("click", () => showRider(el.dataset.rider)));
+    document.querySelectorAll(".side button").forEach((btn) => btn.addEventListener("click", () => {
+      document.querySelectorAll(".side button").forEach((b) => b.classList.toggle("on", b === btn));
+      document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("on", p.id === btn.dataset.panel));
+    }));
+    document.querySelector("#admin #places").onclick = (e) => {
+      const button = e.target.closest("[data-set]");
+      if (!button) return;
+      const row = button.closest("tr");
+      const status = row.querySelector("[data-status]");
+      const next = button.dataset.set;
+      if (next === "Rejected") {
+        const reason = document.getElementById("reason").value.trim();
+        if (!reason) { document.getElementById("placeNote").textContent = "Add a rejection reason first."; return; }
+        document.getElementById("placeNote").textContent = row.querySelector("b").textContent + " rejected: " + reason;
+      }
+      if (next === "Orderable") document.getElementById("placeNote").textContent = "Orderable. The suggester gets the 40-point approval bonus.";
+      status.textContent = next;
+      status.className = "pill" + (next === "Rejected" ? " bad" : "");
+    };
+    document.getElementById("refund").onclick = () => {
+      document.getElementById("orderStatus2").textContent = "Refunded";
+      document.getElementById("orderStatus2").className = "pill bad";
+      document.getElementById("refundNote").textContent = "Charge returned. Cash points restored. Contribution points reversed.";
+      document.getElementById("refund").disabled = true;
+    };
+  </script>
+</body>
+</html>

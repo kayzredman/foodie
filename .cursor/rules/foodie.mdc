@@ -1,0 +1,48 @@
+---
+description: Locked Foodie product, design, and build decisions
+alwaysApply: true
+---
+
+# Foodie
+
+Wordmark is **Foodie.** with the period. Launch market is Ghana first (Accra, GHS, phone +233), then Africa, then further abroad. Kuala Lumpur, `$`, MYR, FPX, TnG, and GrabPay in old docs or the screen recording are sample-only and stale. `docs/payments.md`, the product-brief payment paragraph, and screens Y-01 still say Malaysia and need a Ghana retarget.
+
+## Clients
+
+- Customer app is Expo React Native in `apps/customer`. Run it with Expo Go. The iPhone 17 Pro simulator uses Metro on port 8082 (`--lan`). Web preview has also used port 8081.
+- Admin is a later Next.js website for staff with a Clerk admin role. It is not a tab in the phone.
+- Rider console is in the HTML mock and is a later slice. The product brief still says there is no courier console; that line is stale relative to the mock.
+- First build is the customer order loop. Places, the October board, and profile are in the app as local UI. Live Clerk, live Paystack, points ledger, and the admin site are not built yet.
+
+## Order loop
+
+- One account, one cart, one points wallet.
+- Seed restaurant: Auntie Muni's, Grill, East Legon, Accra, Orderable. Rider on tracking is Kofi Mensah.
+- Catalog prices are pesewas: Herb roast 8500, Jollof bowl 4800, Cheese burger 6500, Loaded fries 2800. Delivery is 850 pesewas unless FREESHIP.
+- FOODIE30 is 30% off food. FREESHIP zeroes delivery. Worked checkout: Herb roast GHS 85.00, FOODIE30 −GHS 25.50, delivery GHS 8.50, to pay GHS 68.00.
+- Tender order: food subtotal, food promo, delivery fee, delivery promo, Foodie cash, gateway remainder. The first app has no cash-points row yet.
+- Methods: MTN MoMo `mtn`, Telecel Cash `vod`, AirtelTigo Money `atl`, Card. Customer enters a phone and approves a prompt. The server learns the result from the webhook.
+- An order exists only after the adapter says paid. A failed or abandoned payment does not create an order and does not move points. Full cancel before courier pickup refunds the payment, restores spent cash points, and reverses contribution points.
+- Money is integer minor units (pesewas) plus ISO currency `GHS`. Idempotency keys. The client does not decide success.
+- Gateway adapter, vendor-agnostic: createIntent, confirm, webhook (signature and event-id dedupe), refund. Paystack is the first driver. Flutterwave is the second for wider Africa. Hubtel stays off the core adapter. Stripe is not available for a Ghana-registered business as of 2026.
+- Current app uses a fake Paystack driver in `apps/customer/lib/payment.ts`.
+
+## Points
+
+- Place lifecycle: Suggested, In review, Live, Orderable, plus Rejected. Points only when Orderable.
+- Qualifying order: Orderable place, status Completed, buyer is not the suggester. Self-orders and same-device or same-payout pairs do not earn; hold them as Under review.
+- Gross points = post-promo food subtotal × 5. Delivery, tax, and tip are excluded.
+- Split 50% cash, 30% rank, 20% prize. Remainder goes to rank. Approval bonus is 40 gross points once, when a place first becomes Orderable.
+- 100 cash points = 1.00 market currency. Checkout spend cap is 20% of the post-promo food subtotal.
+- Rank and prize reset on the 1st. Cash does not. Prize eligibility: top 10 by prize points, and anyone with at least 200 prize points. Cash prizes grant cash points, not a bank transfer.
+- Place payouts, commission, and cashing points out to a bank are later.
+
+## Identity and design
+
+- Clerk owns identity. Foodie owns the pixels. Custom screens via `useSignIn` and `useSignUp`, not the prebuilt card. Google and Apple only. Facebook and LinkedIn from the second clip were not adopted. Google on the login screen is account login, not Google Pay. Offering Google on iOS requires Sign in with Apple.
+- `user.created` opens the wallet. Dev keys come from `npx clerk@latest init` into `.env.local` and stay uncommitted. Until those keys exist, sign-in accepts a valid email or a phone of at least 9 digits and does not check the password.
+- Sign-in and create-account share one phone column. The other pane stays clipped offscreen. Switching waits 640ms, then slides for 1100ms. The courier rides in and the sheet rises on first open. Reduced motion skips that.
+- Google and Apple buttons show their marks (`components/brand-marks.tsx`).
+- Tokens: green/900 `#146B34`, green/600 `#1F9D4A`, green/400 `#8ED86A`, green/50 `#E7F8E4`, ink/900 `#1A1A1A`, ink/500 `#6B7280`, ink/300 `#E4E7EC`, paper `#F6F7F4`, white `#FFFFFF`, danger/600 `#E11D2E`, danger/50 `#FEF2F2`. Font is Plus Jakarta Sans. Pill radius 999, cards 16–20, sheet 28. Phone frame 390×844.
+- Visual source of truth is `mockup/index.html`, not the first flat Figma pages. Figma file `McEaPNytbdY8Tr2BuKQEQR`; use the Mockup page. Maps will be Google. Photos go through a CDN. Database is Postgres. English now; keep strings extractable for French later.
+- Do not commit unless asked. Do not install belt-sh/cli or inference-sh skills unless asked.
