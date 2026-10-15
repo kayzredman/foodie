@@ -10,9 +10,10 @@ export const theme = {
   white: "#FFFFFF",
   danger600: "#E11D2E",
   danger50: "#FEF2F2",
-  radiusCard: 18,
+  radiusCard: 16,
   radiusSheet: 28,
   radiusPill: 999,
+  shadow: "0 8px 24px rgba(26, 26, 26, 0.08)",
 };
 
 export const font = {

@@ -12,7 +12,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: theme.green600,
+        tabBarActiveTintColor: theme.green900,
         tabBarInactiveTintColor: theme.ink500,
         tabBarStyle: {
           backgroundColor: theme.white,
@@ -20,7 +20,7 @@ export default function TabLayout() {
           height: 64,
           paddingTop: 6,
         },
-        tabBarLabelStyle: { fontFamily: font.semibold, fontSize: 11 },
+        tabBarLabelStyle: { fontFamily: font.semibold, fontSize: 12 },
       }}
     >
       <Tabs.Screen

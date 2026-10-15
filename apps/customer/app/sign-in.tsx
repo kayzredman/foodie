@@ -1,9 +1,12 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode, type Ref } from "react";
 import {
   AccessibilityInfo,
   Alert,
   Image,
+  Keyboard,
+  LayoutAnimation,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,7 +15,7 @@ import {
   View,
 } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withTiming } from "react-native-reanimated";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppleMark, GoogleMark } from "@/components/brand-marks";
 import { PrimaryButton } from "@/components/primary-button";
@@ -51,6 +54,27 @@ export default function SignInScreen() {
   const [error, setError] = useState("");
   const [keep, setKeep] = useState(true);
   const [busy, setBusy] = useState(false);
+  const passwordIn = useRef<TextInput>(null);
+  const passwordUp = useRef<TextInput>(null);
+  const insets = useSafeAreaInsets();
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const show = Keyboard.addListener(showEvent, () => {
+      if (Platform.OS === "ios") LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setKeyboardOpen(true);
+    });
+    const hide = Keyboard.addListener(hideEvent, () => {
+      if (Platform.OS === "ios") LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setKeyboardOpen(false);
+    });
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -115,6 +139,7 @@ export default function SignInScreen() {
   return (
     <View style={styles.root}>
       <SafeAreaView
+        edges={["top"]}
         style={styles.clip}
         onLayout={(event) => {
           const width = event.nativeEvent.layout.width;
@@ -125,11 +150,34 @@ export default function SignInScreen() {
         }}
       >
         <Animated.View style={[styles.slider, { width: frame * 2 }, sliderStyle]}>
-          <Pane width={frame} courierStyle={courierStyle} sheetStyle={sheetStyle} title="Hot meals, right at your door.">
+          <Pane
+            width={frame}
+            courierStyle={courierStyle}
+            sheetStyle={sheetStyle}
+            title="Hot meals, right at your door."
+            keyboardOpen={keyboardOpen}
+            bottomInset={insets.bottom}
+          >
             <Text style={styles.h2}>Welcome Back</Text>
-            <Field value={identity} onChangeText={setIdentity} placeholder="Email or phone" autoComplete="username" />
+            <Field
+              value={identity}
+              onChangeText={setIdentity}
+              placeholder="Email or phone"
+              autoComplete="username"
+              returnKeyType="next"
+              blurOnSubmit={false}
+              onSubmitEditing={() => passwordIn.current?.focus()}
+            />
             {error ? <Text style={styles.err}>{error}</Text> : null}
-            <Field value={password} onChangeText={setPassword} placeholder="Password" secure />
+            <Field
+              inputRef={passwordIn}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Password"
+              secure
+              returnKeyType="go"
+              onSubmitEditing={submit}
+            />
             <View style={styles.row}>
               <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: keep }} onPress={() => setKeep((on) => !on)} style={styles.check}>
                 <View style={[styles.box, keep && styles.boxOn]} />
@@ -148,12 +196,35 @@ export default function SignInScreen() {
               </Pressable>
             </View>
           </Pane>
-          <Pane width={frame} courierStyle={courierStyle} sheetStyle={sheetStyle} title="Welcome back. Your points are waiting.">
+          <Pane
+            width={frame}
+            courierStyle={courierStyle}
+            sheetStyle={sheetStyle}
+            title="Welcome back. Your points are waiting."
+            keyboardOpen={keyboardOpen}
+            bottomInset={insets.bottom}
+          >
             <Text style={styles.h2}>Create account</Text>
             <Field value={name} onChangeText={setName} placeholder="Full name" autoComplete="name" />
-            <Field value={identity} onChangeText={setIdentity} placeholder="Email or phone" autoComplete="username" />
+            <Field
+              value={identity}
+              onChangeText={setIdentity}
+              placeholder="Email or phone"
+              autoComplete="username"
+              returnKeyType="next"
+              blurOnSubmit={false}
+              onSubmitEditing={() => passwordUp.current?.focus()}
+            />
             {mode === "up" && error ? <Text style={styles.err}>{error}</Text> : null}
-            <Field value={password} onChangeText={setPassword} placeholder="Password" secure />
+            <Field
+              inputRef={passwordUp}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Password"
+              secure
+              returnKeyType="go"
+              onSubmitEditing={submit}
+            />
             <PrimaryButton label="Create account" busy={busy && mode === "up"} onPress={submit} disabled={busy} />
             <Social />
             <View style={styles.switchRow}>
@@ -175,26 +246,43 @@ function Pane({
   children,
   courierStyle,
   sheetStyle,
+  keyboardOpen,
+  bottomInset,
 }: {
   width: number;
   title: string;
   children: ReactNode;
   courierStyle: object;
   sheetStyle: object;
+  keyboardOpen: boolean;
+  bottomInset: number;
 }) {
   return (
     <View style={{ width, height: "100%" }}>
-      <LinearGradient colors={[theme.green900, theme.green600, theme.green400]} start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }} style={styles.hero}>
+      <LinearGradient
+        colors={[theme.green900, theme.green600, theme.green400]}
+        start={{ x: 0.15, y: 0 }}
+        end={{ x: 0.85, y: 1 }}
+        style={[styles.hero, keyboardOpen && styles.heroCompact]}
+      >
         <View style={styles.heroCopy}>
-          <Text style={styles.wordmark}>Foodie.</Text>
-          <Text style={styles.tag}>{title}</Text>
+          <Text style={[styles.wordmark, keyboardOpen && styles.wordmarkCompact]}>Foodie.</Text>
+          {keyboardOpen ? null : <Text style={styles.tag}>{title}</Text>}
         </View>
-        <Animated.View style={[styles.courier, courierStyle]}>
-          <Image source={require("../assets/food/courier.jpg")} style={styles.courierImg} />
-        </Animated.View>
+        {keyboardOpen ? null : (
+          <Animated.View style={[styles.courier, courierStyle]}>
+            <Image source={require("../assets/food/courier.jpg")} style={styles.courierImg} />
+          </Animated.View>
+        )}
       </LinearGradient>
       <Animated.View style={[styles.sheet, sheetStyle]}>
-        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.sheetContent} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          automaticallyAdjustKeyboardInsets
+          contentContainerStyle={[styles.sheetContent, { paddingBottom: keyboardOpen ? 16 : 28 + bottomInset }]}
+          showsVerticalScrollIndicator={false}
+        >
           {children}
         </ScrollView>
       </Animated.View>
@@ -208,15 +296,24 @@ function Field({
   placeholder,
   secure,
   autoComplete,
+  inputRef,
+  returnKeyType,
+  blurOnSubmit,
+  onSubmitEditing,
 }: {
   value: string;
   onChangeText: (value: string) => void;
   placeholder: string;
   secure?: boolean;
   autoComplete?: "username" | "name";
+  inputRef?: Ref<TextInput>;
+  returnKeyType?: "next" | "go";
+  blurOnSubmit?: boolean;
+  onSubmitEditing?: () => void;
 }) {
   return (
     <TextInput
+      ref={inputRef}
       value={value}
       onChangeText={onChangeText}
       placeholder={placeholder}
@@ -224,6 +321,9 @@ function Field({
       secureTextEntry={secure}
       autoCapitalize="none"
       autoComplete={autoComplete}
+      returnKeyType={returnKeyType}
+      blurOnSubmit={blurOnSubmit}
+      onSubmitEditing={onSubmitEditing}
       style={styles.field}
     />
   );
@@ -271,8 +371,15 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     gap: 12,
   },
+  heroCompact: {
+    minHeight: 88,
+    paddingTop: 8,
+    paddingBottom: 36,
+    alignItems: "center",
+  },
   heroCopy: { flex: 1, paddingBottom: 8 },
   wordmark: { color: theme.white, fontFamily: font.bold, fontSize: 36, letterSpacing: -1 },
+  wordmarkCompact: { fontSize: 28, lineHeight: 34 },
   tag: { color: theme.white, fontFamily: font.semibold, fontSize: 16, lineHeight: 22, marginTop: 8, maxWidth: 160 },
   courier: {
     width: 140,
@@ -292,7 +399,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   sheetContent: { padding: 22, gap: 12, paddingBottom: 28 },
-  h2: { fontFamily: font.bold, fontSize: 28, color: theme.ink900, letterSpacing: -0.5 },
+  h2: { fontFamily: font.bold, fontSize: 24, lineHeight: 30, color: theme.ink900, letterSpacing: -0.5 },
   field: {
     minHeight: 52,
     borderRadius: theme.radiusPill,
@@ -301,16 +408,16 @@ const styles = StyleSheet.create({
     borderColor: theme.ink300,
     paddingHorizontal: 16,
     fontFamily: font.medium,
-    fontSize: 15,
+    fontSize: 16,
     color: theme.ink900,
   },
   err: { color: theme.danger600, fontFamily: font.semibold, fontSize: 12, marginTop: -6, marginLeft: 8 },
   row: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 8 },
   check: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 44 },
   box: { width: 18, height: 18, borderRadius: 5, borderWidth: 1.5, borderColor: theme.ink300 },
-  boxOn: { backgroundColor: theme.green600, borderColor: theme.green600 },
-  checkLabel: { fontFamily: font.semibold, color: theme.ink900, fontSize: 13 },
-  link: { color: theme.green600, fontFamily: font.bold },
+  boxOn: { backgroundColor: theme.green900, borderColor: theme.green900 },
+  checkLabel: { fontFamily: font.semibold, color: theme.ink900, fontSize: 14 },
+  link: { color: theme.green900, fontFamily: font.bold, fontSize: 14 },
   or: { textAlign: "center", color: theme.ink500, fontFamily: font.medium, marginTop: 4 },
   social: { flexDirection: "row", gap: 10 },
   socialBtn: {

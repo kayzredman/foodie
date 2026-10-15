@@ -11,7 +11,7 @@ import {
   PlusJakartaSans_700Bold,
 } from "@expo-google-fonts/plus-jakarta-sans";
 
-import { theme } from "@/constants/theme";
+import { font, theme } from "@/constants/theme";
 import { StoreProvider, useStore } from "@/lib/store";
 
 export { ErrorBoundary } from "expo-router";
@@ -78,12 +78,21 @@ function Gate() {
           boxShadow: framed ? "0 30px 70px rgba(20, 60, 30, 0.18)" : undefined,
         }}
       >
-        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.paper } }}>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            headerShadowVisible: false,
+            headerStyle: { backgroundColor: theme.paper },
+            headerTintColor: theme.green900,
+            headerTitleStyle: { fontFamily: font.bold, color: theme.ink900 },
+            contentStyle: { backgroundColor: theme.paper },
+          }}
+        >
           <Stack.Screen name="sign-in" />
           <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="menu" />
-          <Stack.Screen name="checkout" />
-          <Stack.Screen name="track" />
+          <Stack.Screen name="menu" options={{ headerShown: true, title: "Auntie Muni's" }} />
+          <Stack.Screen name="checkout" options={{ headerShown: true, title: "Checkout" }} />
+          <Stack.Screen name="track" options={{ headerShown: true, title: "Tracking" }} />
           <Stack.Screen name="rider" />
         </Stack>
       </View>

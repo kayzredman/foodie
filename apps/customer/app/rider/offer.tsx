@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
+import { SymbolView } from "expo-symbols";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { PrimaryButton } from "@/components/primary-button";
@@ -26,8 +27,8 @@ export default function OfferScreen() {
   return (
     <View style={styles.root}>
       <SafeAreaView style={styles.mapWrap} edges={["top"]}>
-        <Pressable accessibilityRole="button" onPress={() => router.replace("/rider" as never)} style={styles.back}>
-          <Text style={styles.link}>Back</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Back to jobs" onPress={() => router.replace("/rider" as never)} style={styles.back}>
+          <SymbolView name={{ ios: "chevron.left", android: "arrow_back", web: "arrow_back" }} tintColor={theme.green900} size={22} />
         </Pressable>
         <View style={styles.map}>
           <Pin label="Pickup" top="22%" left="16%" />
@@ -75,13 +76,12 @@ function Pin({ label, top, left, tone }: { label: string; top: `${number}%`; lef
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.paper },
-  mapWrap: { flex: 1, padding: 18, gap: 12 },
-  back: { minHeight: 44, justifyContent: "center", alignSelf: "flex-start" },
-  link: { color: theme.green600, fontFamily: font.bold },
-  map: { flex: 1, borderRadius: 20, backgroundColor: "#D7EBD4", minHeight: 220 },
-  pin: { position: "absolute", backgroundColor: theme.green900, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4 },
+  mapWrap: { flex: 1, padding: 16, gap: 16 },
+  back: { minWidth: 44, minHeight: 44, justifyContent: "center", alignSelf: "flex-start" },
+  map: { flex: 1, borderRadius: 20, borderCurve: "continuous", backgroundColor: theme.green50, minHeight: 220 },
+  pin: { position: "absolute", backgroundColor: theme.green900, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 },
   pinYou: { backgroundColor: theme.ink900 },
-  pinLabel: { color: theme.white, fontFamily: font.bold, fontSize: 11 },
+  pinLabel: { color: theme.white, fontFamily: font.bold, fontSize: 12 },
   offer: {
     position: "absolute",
     left: 12,
@@ -90,6 +90,8 @@ const styles = StyleSheet.create({
     zIndex: 6,
     backgroundColor: theme.white,
     borderRadius: 20,
+    borderCurve: "continuous",
+    boxShadow: theme.shadow,
     padding: 16,
     gap: 8,
   },
@@ -98,7 +100,7 @@ const styles = StyleSheet.create({
     height: 54,
     borderRadius: 27,
     borderWidth: 4,
-    borderColor: theme.green600,
+    borderColor: theme.green900,
     alignItems: "center",
     justifyContent: "center",
   },

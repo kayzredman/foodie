@@ -1,6 +1,6 @@
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { StyleSheet, Text, View } from "react-native";
 
+import { Caption, Card, ScreenScroll, Title } from "@/components/screen";
 import { font, theme } from "@/constants/theme";
 import { useStore } from "@/lib/store";
 
@@ -16,33 +16,33 @@ export default function BoardScreen() {
   const you = session?.name ?? "You";
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.h2}>October</Text>
-        <Text style={styles.muted}>Rank points reset on the 1st. Cash points stay.</Text>
-        {rows.map((row) => (
-          <View key={row.rank} style={styles.row}>
+    <ScreenScroll>
+      <View style={styles.intro}>
+        <Title>October</Title>
+        <Caption>Rank points reset on the 1st. Cash points stay.</Caption>
+      </View>
+      <Card>
+        {rows.map((row, index) => (
+          <View key={row.rank} style={[styles.row, index > 0 && styles.rowLine]}>
             <Text style={styles.rank}>{row.rank}</Text>
             <View style={styles.copy}>
               <Text style={styles.name}>{row.name === "You" ? you : row.name}</Text>
-              <Text style={styles.muted}>{row.place}</Text>
+              <Caption>{row.place}</Caption>
             </View>
             <Text style={styles.points}>{row.points}</Text>
           </View>
         ))}
-      </ScrollView>
-    </SafeAreaView>
+      </Card>
+    </ScreenScroll>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: theme.paper },
-  scroll: { padding: 18, gap: 12, paddingBottom: 32 },
-  h2: { fontFamily: font.bold, fontSize: 28, color: theme.ink900 },
-  muted: { color: theme.ink500, fontFamily: font.medium },
-  row: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: theme.white, borderRadius: 16, padding: 14 },
-  rank: { width: 28, fontFamily: font.bold, color: theme.green900, fontSize: 18 },
+  intro: { gap: 4 },
+  row: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 14, minHeight: 56 },
+  rowLine: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.ink300 },
+  rank: { width: 28, fontFamily: font.bold, color: theme.green900, fontSize: 18, fontVariant: ["tabular-nums"] },
   copy: { flex: 1, gap: 2 },
-  name: { fontFamily: font.bold, color: theme.ink900 },
-  points: { fontFamily: font.bold, color: theme.ink900 },
+  name: { fontFamily: font.bold, fontSize: 16, color: theme.ink900 },
+  points: { fontFamily: font.bold, fontSize: 16, color: theme.ink900, fontVariant: ["tabular-nums"] },
 });

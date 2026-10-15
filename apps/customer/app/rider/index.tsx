@@ -1,50 +1,50 @@
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
 
-import { font, theme } from "@/constants/theme";
 import { useRider } from "@/app/rider/_layout";
+import { Caption, Card, ScreenScroll, Title } from "@/components/screen";
+import { font, theme } from "@/constants/theme";
 
 export default function JobsScreen() {
   const router = useRouter();
   const { accepted } = useRider();
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.h2}>Rider</Text>
-        <Text style={styles.muted}>East Legon · 2 jobs nearby</Text>
-        <Pressable style={styles.spot} accessibilityRole="button" onPress={() => router.push("/rider/offer" as never)}>
-          <Image source={require("../../assets/food/chicken.jpg")} style={styles.img} />
+    <ScreenScroll>
+      <View style={styles.intro}>
+        <Title>Jobs</Title>
+        <Caption>East Legon · 2 jobs nearby</Caption>
+      </View>
+      <Pressable accessibilityRole="button" onPress={() => router.push("/rider/offer" as never)}>
+        <Card style={styles.spot}>
+          <Image source={require("../../assets/food/chicken.jpg")} style={styles.img} contentFit="cover" />
           <View style={styles.copy}>
             <Text style={styles.name}>#1048 · Auntie Muni's</Text>
-            <Text style={styles.muted}>Pickup 1.2 km · East Legon</Text>
+            <Caption>Pickup 1.2 km · East Legon</Caption>
             <Text style={styles.earn}>GHS 12</Text>
             <Text style={styles.chip}>{accepted ? "Accepted" : "New"}</Text>
           </View>
-        </Pressable>
-        <View style={styles.spot}>
-          <Image source={require("../../assets/food/jollof.jpg")} style={styles.img} />
-          <View style={styles.copy}>
-            <Text style={styles.name}>#1044 · Buka Spot</Text>
-            <Text style={styles.muted}>Osu · GHS 9 · Taken</Text>
-          </View>
+        </Card>
+      </Pressable>
+      <Card style={styles.spot}>
+        <Image source={require("../../assets/food/jollof.jpg")} style={styles.img} contentFit="cover" />
+        <View style={styles.copy}>
+          <Text style={styles.name}>#1044 · Buka Spot</Text>
+          <Caption>Osu · GHS 9 · Taken</Caption>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+      </Card>
+    </ScreenScroll>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: theme.paper },
-  scroll: { padding: 18, gap: 12, paddingBottom: 28 },
-  h2: { fontFamily: font.bold, fontSize: 28, color: theme.ink900 },
-  muted: { color: theme.ink500, fontFamily: font.medium },
-  spot: { flexDirection: "row", gap: 12, backgroundColor: theme.white, borderRadius: theme.radiusCard, padding: 10, alignItems: "center" },
+  intro: { gap: 4 },
+  spot: { flexDirection: "row", gap: 12, padding: 12, alignItems: "center" },
   img: { width: 72, height: 72, borderRadius: 14 },
   copy: { flex: 1, gap: 4 },
   name: { fontFamily: font.bold, color: theme.ink900, fontSize: 16 },
-  earn: { fontFamily: font.bold, color: theme.green900, fontSize: 14 },
+  earn: { fontFamily: font.bold, color: theme.green900, fontSize: 16, fontVariant: ["tabular-nums"] },
   chip: {
     alignSelf: "flex-start",
     backgroundColor: theme.green50,
