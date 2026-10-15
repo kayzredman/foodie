@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "name": "foodie",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev:api": "npm --prefix apps/api run dev",
+    "dev:admin": "npm --prefix apps/admin run dev",
+    "build:api": "npm --prefix apps/api install && npm --prefix apps/api run build",
+    "start:api": "npm --prefix apps/api start"
+  }
+}

@@ -1,0 +1,11 @@
+:root {
+  color: #1a1a1a;
+  background: #f6f7f4;
+  font-family: "Plus Jakarta Sans", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body { margin: 0; }
+
+a { color: #146b34; }
